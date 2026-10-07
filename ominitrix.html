@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Omnitrix - Sequência Completa (Transformação e Bateria)</title>
+  <style>
+    /* Reset e visual escuro */
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at center, #252b36 0%, #11141a 100%);
+      user-select: none;
+      overflow: hidden;
+    }
+
+    :root {
+      /* Cores Base */
+      --cor-borda: #1a1a1a;
+      --cor-anel-externo: #525252;
+      --cor-anel-interno: #7a7a7a;
+      --cor-fundo-tela: #d1d5db;
+
+      /* Cores Modo Ativo (Verde) */
+      --cor-verde: #b2ff1c;
+      --cor-verde-brilho: #a3ff00;
+
+      /* Cores Modo Transformado (Prata / Cinza Metálico) */
+      --cor-trans-anel-ext: #8ca3b8;
+      --cor-trans-anel-int: #a3b8cc;
+      --cor-trans-centro: #eef5fc;
+
+      /* Cores Modo Recarga (Vermelho) */
+      --cor-vermelho: #e60000;
+      --cor-vermelho-brilho: #ff3333;
+    }
+
+    /* Container Principal */
+    .omnitrix-container {
+      position: relative;
+      width: 320px;
+      height: 320px;
+      background-color: var(--cor-anel-externo);
+      border: 16px solid var(--cor-borda);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-sizing: border-box;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.3s ease, background-color 0.4s ease, border-color 0.4s ease;
+    }
+
+    .omnitrix-container:active {
+      transform: scale(0.96);
+    }
+
+    /* Pinos Externos */
+    .node {
+      position: absolute;
+      width: 44px;
+      height: 44px;
+      background-color: var(--cor-verde);
+      border: 12px solid var(--cor-borda);
+      border-radius: 50%;
+      box-sizing: border-box;
+      z-index: 10;
+      transition: opacity 0.4s ease, transform 0.4s ease, background-color 0.4s ease;
+    }
+
+    .node.top {
+      top: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .node.bottom {
+      bottom: -14px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .node.left {
+      left: -14px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .node.right {
+      right: -14px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    /* Mostrador Central */
+    .inner-circle {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      background-color: var(--cor-fundo-tela);
+      border: 14px solid var(--cor-borda);
+      border-radius: 50%;
+      overflow: hidden;
+      box-sizing: border-box;
+      transition: border-color 0.4s ease;
+    }
+
+    /* Camadas do Losango / Ampulheta */
+    .black-bg {
+      position: absolute;
+      inset: -10px;
+      background-color: var(--cor-borda);
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+      transition: clip-path 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 1;
+    }
+
+    .green-bg {
+      position: absolute;
+      inset: -10px;
+      background-color: var(--cor-verde);
+      clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+      transition: clip-path 0.5s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease;
+      z-index: 2;
+    }
+
+    /* Painéis de Fechamento */
+    .shape {
+      position: absolute;
+      top: 50%;
+      width: 0;
+      height: 0;
+      border-top: 150px solid transparent;
+      border-bottom: 150px solid transparent;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s ease, border-color 0.4s ease;
+      z-index: 4;
+    }
+
+    .black-left {
+      right: 50%;
+      border-left: 150px solid var(--cor-borda);
+      transform: translateY(-50%) translateX(0);
+    }
+
+    .grey-left {
+      right: calc(50% + 18px);
+      border-left: 150px solid var(--cor-anel-interno);
+      transform: translateY(-50%) translateX(0);
+    }
+
+    .black-right {
+      left: 50%;
+      border-right: 150px solid var(--cor-borda);
+      transform: translateY(-50%) translateX(0);
+    }
+
+    .grey-right {
+      left: calc(50% + 18px);
+      border-right: 150px solid var(--cor-anel-interno);
+      transform: translateY(-50%) translateX(0);
+    }
+
+    /* Silhueta do Alien */
+    .alien-silhouette {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 140px;
+      height: 140px;
+      object-fit: contain;
+      transform: translate(-50%, -50%) scale(0.2);
+      opacity: 0;
+      transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease, filter 0.2s ease;
+      z-index: 3;
+      pointer-events: none;
+    }
+
+    .alien-silhouette.changing {
+      filter: brightness(0);
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.8);
+      transition: none;
+    }
+
+    /* Flash de Cores (Verde e Vermelho) */
+    .flash-overlay {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      z-index: 20;
+      pointer-events: none;
+      border-radius: 50%;
+      transition: opacity 0.15s ease-in;
+    }
+
+
+    /* =========================================
+       1. ESTADO DE SELEÇÃO (active)
+       ========================================= */
+    .omnitrix-container.active {
+      box-shadow: 0 0 35px rgba(178, 255, 28, 0.45);
+    }
+
+    .omnitrix-container.active .black-bg {
+      clip-path: polygon(50% 2%, 98% 50%, 50% 98%, 2% 50%);
+    }
+
+    .omnitrix-container.active .green-bg {
+      clip-path: polygon(50% 6%, 94% 50%, 50% 94%, 6% 50%);
+      background-color: var(--cor-verde-brilho);
+    }
+
+    .omnitrix-container.active .black-left,
+    .omnitrix-container.active .grey-left {
+      transform: translateY(-50%) translateX(-160px);
+      opacity: 0;
+    }
+
+    .omnitrix-container.active .black-right,
+    .omnitrix-container.active .grey-right {
+      transform: translateY(-50%) translateX(160px);
+      opacity: 0;
+    }
+
+    .omnitrix-container.active .alien-silhouette {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+      transition-delay: 0.15s;
+    }
+
+    /* =========================================
+       2. FLASH DE TRANSFORMAÇÃO (flashing-green)
+       ========================================= */
+    .omnitrix-container.flashing-green .flash-overlay {
+      background: radial-gradient(circle, #e2ff6f 0%, #88ff00 60%, rgba(0, 255, 0, 0) 100%);
+      opacity: 1;
+    }
+
+    .omnitrix-container.flashing-green {
+      box-shadow: 0 0 70px rgba(178, 255, 28, 0.95);
+      transform: scale(1.05);
+    }
+
+    /* =========================================
+       3. ESTADO TRANSFORMADO (transformed - Cinza Metálico)
+       ========================================= */
+    .omnitrix-container.transformed {
+      background-color: var(--cor-trans-anel-ext);
+      border-color: #1a1a1a;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .omnitrix-container.transformed .node {
+      opacity: 0;
+      transform: scale(0.5);
+    }
+
+    .omnitrix-container.transformed .green-bg {
+      background-color: var(--cor-trans-centro);
+    }
+
+    .omnitrix-container.transformed .grey-left,
+    .omnitrix-container.transformed .grey-right {
+      border-left-color: var(--cor-trans-anel-int);
+      border-right-color: var(--cor-trans-anel-int);
+    }
+
+    /* =========================================
+       4. ESTADO DE ALERTA (warning - Bateria Acabando)
+       ========================================= */
+    @keyframes pulse-red {
+
+      0%,
+      100% {
+        background-color: var(--cor-trans-centro);
+      }
+
+      50% {
+        background-color: var(--cor-vermelho-brilho);
+      }
+    }
+
+    @keyframes pulse-overlay {
+
+      0%,
+      100% {
+        opacity: 0;
+      }
+
+      50% {
+        opacity: 1;
+      }
+    }
+
+    .omnitrix-container.warning .green-bg {
+      animation: pulse-red 0.6s infinite ease-in-out;
+    }
+
+    .omnitrix-container.warning .flash-overlay {
+      background: radial-gradient(circle, rgba(255, 51, 51, 0.6) 0%, rgba(255, 0, 0, 0) 80%);
+      animation: pulse-overlay 0.6s infinite ease-in-out;
+    }
+
+    /* =========================================
+       5. FLASH DE DESCARGA (flashing-red)
+       ========================================= */
+    .omnitrix-container.flashing-red .flash-overlay {
+      background: radial-gradient(circle, #ff8c8c 0%, #ff0000 60%, rgba(255, 0, 0, 0) 100%);
+      opacity: 1;
+      animation: none;
+      /* Reseta a animação do alerta */
+    }
+
+    .omnitrix-container.flashing-red {
+      box-shadow: 0 0 70px rgba(255, 0, 0, 0.95);
+      transform: scale(1.05);
+    }
+
+    /* =========================================
+       6. ESTADO DE RECARGA (recharging - Vermelho)
+       ========================================= */
+    .omnitrix-container.recharging {
+      /* O corpo volta para o cinza escuro original */
+      background-color: var(--cor-anel-externo);
+      border-color: var(--cor-borda);
+      box-shadow: 0 10px 30px rgba(255, 0, 0, 0.2);
+    }
+
+    .omnitrix-container.recharging .green-bg {
+      background-color: var(--cor-vermelho);
+    }
+
+    .omnitrix-container.recharging .node {
+      /* Os nós reaparecem, mas em vermelho */
+      background-color: var(--cor-vermelho);
+      opacity: 1;
+      transform: scale(1);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="omnitrix-container" id="omnitrix">
+    <div class="node top"></div>
+    <div class="node bottom"></div>
+    <div class="node left"></div>
+    <div class="node right"></div>
+
+    <div class="inner-circle">
+      <div class="black-bg"></div>
+      <div class="green-bg"></div>
+
+      <div class="shape black-left"></div>
+      <div class="shape grey-left"></div>
+      <div class="shape black-right"></div>
+      <div class="shape grey-right"></div>
+
+      <img src="diamante.png" alt="Silhueta Alien" class="alien-silhouette" id="alien-img" draggable="false">
+
+      <!-- Overlay usado para os flashes Verde, Vermelho e o pulsar de Alerta -->
+      <div class="flash-overlay"></div>
+    </div>
+  </div>
+
+  <script>
+    const omnitrix = document.getElementById('omnitrix');
+    const alienImg = document.getElementById('alien-img');
+
+    const aliens = [
+      '4 braço.png', 'aquatico.png', 'bala de canhao.png', 'besta.png',
+      'cinzenta.png', 'cipo.png', 'diamante.png', 'fantasmatico.png',
+      'gigante.png', 'Glutao.png', 'insectoide.png', 'ultraT.png', 'xlr8.png'
+    ];
+
+    const audioDestransformar = new Audio('sons/Destransformar.mp3');
+    const audioLiberado = new Audio('sons/liberado.MP3');
+    const audioSelecionar = new Audio('sons/selecionar.MP3');
+    const audioEspera = new Audio('sons/espera.MP3');
+    audioEspera.loop = true;
+    const audioTransformar = new Audio('sons/transformar.MP3');
+    const audioTroca = new Audio('sons/troca.mp3');
+
+    audioSelecionar.addEventListener('ended', () => {
+      if (omnitrix.classList.contains('active')) {
+        audioEspera.play().catch(e => console.log('Erro ao tocar espera:', e));
+      }
+    });
+    let currentIndex = 6;
+    let startX = 0;
+    let isDragging = false;
+    let isMoved = false;
+    let isTransforming = false; // Trava cliques durante as animações de luz
+
+    // Mouse
+    omnitrix.addEventListener('mousedown', (e) => {
+      if (isTransforming) return;
+      startX = e.clientX;
+      isDragging = true;
+      isMoved = false;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      if (Math.abs(e.clientX - startX) > 10) isMoved = true;
+    });
+
+    window.addEventListener('mouseup', (e) => {
+      if (!isDragging) return;
+      isDragging = false;
+      processarAcao(startX, e.clientX);
+    });
+
+    // Touch
+    omnitrix.addEventListener('touchstart', (e) => {
+      if (isTransforming) return;
+      startX = e.touches[0].clientX;
+      isDragging = true;
+      isMoved = false;
+    });
+
+    window.addEventListener('touchmove', (e) => {
+      if (!isDragging) return;
+      if (Math.abs(e.touches[0].clientX - startX) > 10) isMoved = true;
+    });
+
+    window.addEventListener('touchend', (e) => {
+      if (!isDragging) return;
+      isDragging = false;
+      processarAcao(startX, e.changedTouches[0].clientX);
+    });
+
+
+    // Lógica Central de Cliques e Arrasto
+    function processarAcao(inicio, fim) {
+      if (isTransforming) return;
+
+      const diferencaX = inicio - fim;
+
+      if (!isMoved) {
+        // FOI UM CLIQUE
+        if (omnitrix.classList.contains('recharging')) {
+          // Relógio descarregado -> Reseta para verde (Standby)
+          omnitrix.classList.remove('recharging');
+          audioLiberado.currentTime = 0;
+          audioLiberado.play().catch(e => console.log(e));
+
+        } else if (omnitrix.classList.contains('transformed')) {
+          // Transformado -> Inicia sequência de perda de energia
+          executarDescarregamento();
+
+        } else if (omnitrix.classList.contains('active')) {
+          // Selecionando alien -> Transforma!
+          executarTransformacao();
+
+        } else {
+          // Fechado -> Abre para selecionar alien
+          omnitrix.classList.add('active');
+          audioSelecionar.currentTime = 0;
+          audioSelecionar.play().catch(e => console.log(e));
+        }
+      } else {
+        // FOI UM ARRASTO (Navegação de Aliens)
+        if (omnitrix.classList.contains('active') && !omnitrix.classList.contains('transformed')) {
+          if (diferencaX > 40) trocarAlien(1);
+          else if (diferencaX < -40) trocarAlien(-1);
+        }
+      }
+    }
+
+    // Sequência de Transformação (Verde -> Cinza)
+    function executarTransformacao() {
+      isTransforming = true;
+      omnitrix.classList.add('flashing-green');
+
+      // Interrompe os áudios de seleção e espera
+      audioSelecionar.pause();
+      audioEspera.pause();
+      audioEspera.currentTime = 0;
+
+      // Reproduz som de transformação
+      audioTransformar.currentTime = 0;
+      audioTransformar.play().catch(e => console.log(e));
+
+      setTimeout(() => {
+        omnitrix.classList.remove('active');
+        omnitrix.classList.add('transformed');
+
+        setTimeout(() => {
+          omnitrix.classList.remove('flashing-green');
+          isTransforming = false;
+        }, 200);
+      }, 350);
+    }
+
+    // Sequência de Bateria Acabando (Alerta -> Flash Vermelho -> Modo Recarga)
+    function executarDescarregamento() {
+      isTransforming = true;
+
+      // Reproduz o áudio
+      audioDestransformar.currentTime = 0;
+      audioDestransformar.play().catch(e => console.log('Erro ao tocar áudio:', e));
+
+      // 1. Inicia o piscar em vermelho
+      omnitrix.classList.add('warning');
+
+      // Deixa piscar por 3 segundos
+      setTimeout(() => {
+        // 2. Dispara o grande Flash Vermelho
+        omnitrix.classList.remove('warning');
+        omnitrix.classList.add('flashing-red');
+
+        setTimeout(() => {
+          // 3. Modifica o relógio para o visual de recarga (vermelho escuro)
+          omnitrix.classList.remove('transformed');
+          omnitrix.classList.add('recharging');
+
+          setTimeout(() => {
+            // 4. Finaliza a animação
+            omnitrix.classList.remove('flashing-red');
+            isTransforming = false;
+          }, 200);
+        }, 350); // Tempo do pico do flash
+      }, 3000); // 3 segundos de alerta piscando
+    }
+
+    // Troca suave da imagem do Alien
+    function trocarAlien(direcao) {
+      audioTroca.currentTime = 0;
+      audioTroca.play().catch(e => console.log('Erro ao tocar troca:', e));
+
+      alienImg.classList.add('changing');
+      setTimeout(() => {
+        currentIndex = (currentIndex + direcao + aliens.length) % aliens.length;
+        alienImg.src = aliens[currentIndex];
+        alienImg.classList.remove('changing');
+      }, 150);
+    }
+  </script>
+</body>
+
+</html>
