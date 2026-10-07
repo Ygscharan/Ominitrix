@@ -53,6 +53,7 @@
       box-sizing: border-box;
       box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
       cursor: pointer;
+      touch-action: none; /* Previne scroll/zoom no mobile ao tocar no relógio */
       transition: transform 0.15s ease, box-shadow 0.3s ease, background-color 0.4s ease, border-color 0.4s ease;
     }
 
@@ -397,42 +398,30 @@
     let isMoved = false;
     let isTransforming = false; // Trava cliques durante as animações de luz
 
-    // Mouse
-    omnitrix.addEventListener('mousedown', (e) => {
+    // Unificação de Mouse e Touch (Pointer Events)
+    omnitrix.addEventListener('pointerdown', (e) => {
       if (isTransforming) return;
       startX = e.clientX;
       isDragging = true;
       isMoved = false;
+      omnitrix.setPointerCapture(e.pointerId);
     });
 
-    window.addEventListener('mousemove', (e) => {
+    omnitrix.addEventListener('pointermove', (e) => {
       if (!isDragging) return;
       if (Math.abs(e.clientX - startX) > 10) isMoved = true;
     });
 
-    window.addEventListener('mouseup', (e) => {
+    omnitrix.addEventListener('pointerup', (e) => {
       if (!isDragging) return;
       isDragging = false;
+      omnitrix.releasePointerCapture(e.pointerId);
       processarAcao(startX, e.clientX);
     });
 
-    // Touch
-    omnitrix.addEventListener('touchstart', (e) => {
-      if (isTransforming) return;
-      startX = e.touches[0].clientX;
-      isDragging = true;
-      isMoved = false;
-    });
-
-    window.addEventListener('touchmove', (e) => {
-      if (!isDragging) return;
-      if (Math.abs(e.touches[0].clientX - startX) > 10) isMoved = true;
-    });
-
-    window.addEventListener('touchend', (e) => {
-      if (!isDragging) return;
+    omnitrix.addEventListener('pointercancel', (e) => {
       isDragging = false;
-      processarAcao(startX, e.changedTouches[0].clientX);
+      omnitrix.releasePointerCapture(e.pointerId);
     });
 
 
