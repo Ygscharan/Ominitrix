@@ -400,6 +400,7 @@
 
     // Unificação de Mouse e Touch (Pointer Events)
     omnitrix.addEventListener('pointerdown', (e) => {
+      e.preventDefault(); // Previne eventos duplicados (ghost clicks) no mobile
       if (isTransforming) return;
       startX = e.clientX;
       isDragging = true;
